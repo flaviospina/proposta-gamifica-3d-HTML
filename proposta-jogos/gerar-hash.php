@@ -1,8 +1,9 @@
 <?php
 /**
- * gerar-hash.php — USO ÚNICO. Gera o hash bcrypt da senha de acesso para colar no config.php.
- * Abra no navegador, digite a senha escolhida, copie o hash e APAGUE este arquivo do servidor.
- * A senha digitada não é gravada em lugar nenhum.
+ * gerar-hash.php — ferramenta de emergência. Gera um hash bcrypt para redefinir a senha de
+ * uma conta direto no phpMyAdmin (por exemplo, se o admin esquecer a própria senha).
+ * No uso normal não é preciso: o admin cria contas e redefine senhas em usuarios.php.
+ * A senha digitada não é gravada em lugar nenhum. Apague o arquivo quando não precisar.
  */
 declare(strict_types=1);
 
@@ -30,7 +31,7 @@ $h = fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Gerar hash da senha de acesso</title>
+  <title>Gerar hash de senha</title>
   <style>
     body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#FBF7EF;color:#1C2237;line-height:1.5}
     main{max-width:640px;margin:40px auto;padding:0 20px}
@@ -49,8 +50,8 @@ $h = fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 </head>
 <body>
 <main>
-  <h1>Gerar hash da senha de acesso</h1>
-  <p>Escolha a senha que os sócios usarão para abrir a proposta. O hash gerado vai no <code>config.php</code>.</p>
+  <h1>Gerar hash de senha</h1>
+  <p>Use só para redefinir uma senha pelo phpMyAdmin (por exemplo, se o administrador esqueceu a dele). No uso normal, o admin redefine senhas em <code>usuarios.php</code>.</p>
   <div class="card">
     <?php if ($hash === ''): ?>
       <form method="post" action="gerar-hash.php" autocomplete="off">
@@ -65,15 +66,15 @@ $h = fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
       <div class="ok">Hash gerado<?= $confere ? ' e conferido' : '' ?>. Copie a linha abaixo inteira:</div>
       <textarea rows="2" readonly onclick="this.select()"><?= $h($hash) ?></textarea>
       <ol>
-        <li>Abra o <code>config.php</code> no Gerenciador de Arquivos do cPanel (botão "Editar").</li>
-        <li>Localize a linha <code>define('ACESSO_SENHA_HASH', '...');</code> e cole o hash entre as aspas simples, substituindo o texto PREENCHER.</li>
-        <li>Salve o arquivo e abra o <a href="teste-conexao.php">teste-conexao.php</a> para conferir.</li>
+        <li>No phpMyAdmin, selecione o banco e abra a aba <strong>SQL</strong>.</li>
+        <li>Execute, trocando o hash e o usuário:<br><code>UPDATE pj_usuarios SET senha_hash = '<em>cole-o-hash-aqui</em>', trocar_senha = 1 WHERE login = 'admin';</code></li>
+        <li>Entre na página com essa senha; ela vai pedir uma senha nova.</li>
         <li><strong>Apague este arquivo (gerar-hash.php) do servidor.</strong></li>
       </ol>
       <p><a href="gerar-hash.php">Gerar outro</a></p>
     <?php endif; ?>
   </div>
-  <div class="aviso">Este arquivo é de uso único. Enquanto estiver no servidor, qualquer pessoa pode abri-lo; ele não revela nada, mas não deve ficar publicado.</div>
+  <div class="aviso">Enquanto estiver no servidor, qualquer pessoa pode abrir este arquivo; ele não revela nada, mas não deve ficar publicado.</div>
 </main>
 </body>
 </html>

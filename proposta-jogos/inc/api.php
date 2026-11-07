@@ -25,6 +25,9 @@ $API_USUARIO = usuario_logado();
 if ($API_USUARIO === null) {
     json_response(false, null, 'Sua sessão expirou. Recarregue a página e entre de novo.', 401);
 }
+if (!empty($API_USUARIO['trocar_senha'])) {
+    json_response(false, null, 'Você precisa definir uma senha nova antes de continuar.', 403);
+}
 
 /** Dados da requisição: JSON (fetch) ou formulário clássico. */
 function api_entrada(): array
@@ -61,7 +64,7 @@ function api_exigir_post(): array
 }
 
 /** Monta a resposta padrão de um jogo após qualquer alteração. */
-function api_resposta_jogo(array $jogo, string $usuario, string $mensagem, ?array $extra = null): never
+function api_resposta_jogo(array $jogo, array $usuario, string $mensagem, ?array $extra = null): never
 {
     $obs = observacoes_do_jogo((int) $jogo['id'], $usuario);
     $ultimo = ultimo_parecer($obs);

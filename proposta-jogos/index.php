@@ -63,7 +63,11 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
       <a href="#geral">Observações gerais</a>
     </nav>
     <button class="btn btn--ouro" type="button" id="abrir-resumo" aria-haspopup="dialog" aria-controls="resumo">Resumo</button>
-    <div class="topo__usuario"><span class="topo__nome" title="Conectado como"><?= e($usuario) ?></span><a class="topo__sair" href="sair.php">Sair</a></div>
+    <div class="topo__usuario">
+      <a class="topo__nome" href="trocar-senha.php" title="Trocar minha senha"><?= e($usuario['nome']) ?></a>
+      <?php if (usuario_e_admin($usuario)): ?><a class="topo__link" href="usuarios.php">Usuários</a><?php endif; ?>
+      <a class="topo__sair" href="sair.php">Sair</a>
+    </div>
     <button class="nav-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">☰</button>
   </div>
 </header>
@@ -903,7 +907,7 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
 <script>
   window.PJ = {
     csrf: document.querySelector('meta[name="csrf"]').content,
-    usuario: <?= json_encode($usuario, JSON_UNESCAPED_UNICODE) ?>,
+    usuario: <?= json_encode(['id' => $usuario['id'], 'nome' => $usuario['nome'], 'perfil' => $usuario['perfil']], JSON_UNESCAPED_UNICODE) ?>,
     api: 'api/',
     pareceres: <?= json_encode(PARECERES, JSON_UNESCAPED_UNICODE) ?>
   };

@@ -15,15 +15,15 @@ $explicacao = $explicacao ?? 'Erro de conexão com o banco de dados.';
   <title>Banco de dados indisponível · <?= e(APP_NOME) ?></title>
   <link rel="stylesheet" href="css/estilo.css">
 </head>
-<body class="pagina-login">
-  <main class="login">
-    <div class="login__card">
-      <div class="login__marca"><span class="marca__logo">G</span><span>Gamifica <b>3D</b></span></div>
-      <h1>Banco de dados indisponível</h1>
+<body class="pagina-acesso pagina-acesso--simples">
+  <main class="acesso acesso--centro">
+    <section class="acesso__form"><div class="acesso__card">
+      <a class="marca marca--escura" href="index.php"><span class="marca__logo">G</span>Gamifica&nbsp;<span class="marca__3d">3D</span></a>
+      <h2>Banco de dados indisponível</h2>
       <div class="alerta alerta--erro"><?= e($explicacao) ?></div>
-      <p class="login__nota">Confira o <code>config.php</code> e abra o <a href="teste-conexao.php">teste-conexao.php</a> para ver o diagnóstico completo. Se o banco está correto, rode o <code>sql/01-criar-tabelas.sql</code> no phpMyAdmin.</p>
+      <p class="acesso__nota">Confira o <code>config.php</code> e abra o <a href="teste-conexao.php">teste-conexao.php</a> para ver o diagnóstico completo. Se o banco está correto, rode o <code>sql/01-criar-tabelas.sql</code> no phpMyAdmin.</p>
       <p><a class="btn btn--contorno" href="index.php">Tentar de novo</a></p>
-    </div>
+    </div></section>
   </main>
 </body>
 </html>

@@ -6,6 +6,7 @@
  * mas mesmo assim nunca deixe credenciais de exemplo aqui depois de publicar.
  *
  * Depois de preencher, abra teste-conexao.php no navegador para conferir.
+ * Não há senha de acesso aqui: as contas ficam no banco (tabela pj_usuarios).
  */
 declare(strict_types=1);
 
@@ -21,13 +22,14 @@ define('DB_PASS', 'PREENCHER_senha_do_banco');  // a senha definida ao criar o u
 define('DB_PORT', 3306);                        // porta padrão do MySQL; normalmente não muda
 
 /* ---------------------------------------------------------------------
- * 2) SENHA DE ACESSO À PÁGINA (compartilhada entre os sócios)
- *    NÃO coloque a senha em texto puro. Abra gerar-hash.php no navegador,
- *    digite a senha escolhida, copie o hash gerado e cole entre as aspas abaixo.
- *    Depois APAGUE o gerar-hash.php do servidor.
- *    O hash começa com "$2y$10$" e tem 60 caracteres.
+ * 2) ACESSO À PÁGINA
+ *    O acesso é por contas individuais, guardadas na tabela pj_usuarios
+ *    (criada pelo sql/01-criar-tabelas.sql). A conta inicial é:
+ *        usuário: admin      senha temporária: admin1234
+ *    No primeiro acesso a página obriga a trocar essa senha. Depois, o admin
+ *    cria as outras contas em usuarios.php. Não há senha neste arquivo.
  * ------------------------------------------------------------------- */
-define('ACESSO_SENHA_HASH', 'PREENCHER_hash_bcrypt_gerado_por_gerar-hash.php');
+define('SENHA_MINIMO', 8);                       // tamanho mínimo das senhas novas
 
 /* ---------------------------------------------------------------------
  * 3) AJUSTES GERAIS (normalmente não precisa mexer)

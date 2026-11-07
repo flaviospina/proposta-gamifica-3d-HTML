@@ -27,15 +27,10 @@ $itens[] = extension_loaded('mbstring')
     : ['erro', 'Extensão mbstring', 'Não encontrada. No cPanel → "Select PHP Version", marque mbstring.'];
 
 // 2) config.php preenchido?
-$pend = config_pendencias();
-$pendBanco = array_filter($pend, fn($m) => !str_contains($m, 'ACESSO_SENHA_HASH'));
-$pendHash  = array_filter($pend, fn($m) => str_contains($m, 'ACESSO_SENHA_HASH'));
+$pendBanco = config_pendencias();
 $itens[] = $pendBanco
     ? ['erro', 'Credenciais do banco no config.php', implode(' ', $pendBanco)]
     : ['ok', 'Credenciais do banco no config.php', 'Preenchidas (host: ' . e(DB_HOST) . ', banco: ' . e(DB_NAME) . ', usuário: ' . e(DB_USER) . ').'];
-$itens[] = $pendHash
-    ? ['aviso', 'Senha de acesso (hash)', implode(' ', $pendHash)]
-    : ['ok', 'Senha de acesso (hash)', 'Hash bcrypt definido. Lembre de apagar o gerar-hash.php.'];
 
 // 3) conexão
 $conectou = false;
@@ -54,7 +49,7 @@ if (!$pendBanco) {
 if ($conectou) {
     try {
         $tabelas = $pdo->query("SHOW TABLES LIKE 'pj\\_%'")->fetchAll(PDO::FETCH_COLUMN);
-        $faltam = array_diff(['pj_jogos', 'pj_observacoes'], $tabelas);
+        $faltam = array_diff(['pj_usuarios', 'pj_jogos', 'pj_observacoes'], $tabelas);
         if ($faltam) {
             $itens[] = ['erro', 'Tabelas pj_*', 'Faltam: ' . e(implode(', ', $faltam)) . '. Rode o sql/01-criar-tabelas.sql no phpMyAdmin com o banco selecionado.'];
         } else {
@@ -63,6 +58,19 @@ if ($conectou) {
             $itens[] = $qtd >= 9
                 ? ['ok', 'Tabelas pj_*', "pj_jogos com $qtd itens e pj_observacoes com $obs observação(ões) ativa(s)."]
                 : ['aviso', 'Tabelas pj_*', "pj_jogos tem só $qtd itens (esperado 9). Rode o sql/01-criar-tabelas.sql de novo; ele não duplica."];
+            $colUsuario = $pdo->query("SHOW COLUMNS FROM pj_observacoes LIKE 'usuario_id'")->fetch();
+            if (!$colUsuario) {
+                $itens[] = ['erro', 'Coluna usuario_id', 'A tabela pj_observacoes é de uma versão antiga. Rode o sql/02-migracao-usuarios.sql no phpMyAdmin.'];
+            }
+            $admins = (int) $pdo->query("SELECT COUNT(*) FROM pj_usuarios WHERE perfil = 'admin' AND ativo = 1")->fetchColumn();
+            $adminTemp = (int) $pdo->query("SELECT COUNT(*) FROM pj_usuarios WHERE login = 'admin' AND trocar_senha = 1")->fetchColumn();
+            if ($admins === 0) {
+                $itens[] = ['erro', 'Conta administradora', 'Nenhum administrador ativo em pj_usuarios. Rode o sql/01-criar-tabelas.sql de novo (ele recria o admin se não existir).'];
+            } elseif ($adminTemp === 1) {
+                $itens[] = ['aviso', 'Conta administradora', 'O usuário "admin" ainda está com a senha temporária (admin1234). Entre na página para definir a senha definitiva.'];
+            } else {
+                $itens[] = ['ok', 'Conta administradora', "$admins administrador(es) ativo(s); a senha do admin já foi definida."];
+            }
         }
         $charset = $pdo->query("SELECT @@character_set_database")->fetchColumn();
         $itens[] = str_starts_with((string) $charset, 'utf8mb4')
@@ -83,8 +91,8 @@ $itens[] = (function (): array {
 
 // 6) arquivos de uso único ainda presentes?
 $itens[] = is_file(__DIR__ . '/gerar-hash.php')
-    ? ['aviso', 'gerar-hash.php', 'Ainda está no servidor. Depois de colar o hash no config.php, apague-o.']
-    : ['ok', 'gerar-hash.php', 'Já foi removido.'];
+    ? ['aviso', 'gerar-hash.php', 'Ainda está no servidor. Ele só serve para redefinir uma senha pelo phpMyAdmin; apague-o quando não precisar.']
+    : ['ok', 'gerar-hash.php', 'Não está no servidor (bom).'];
 
 $temErro = (bool) array_filter($itens, fn($i) => $i[0] === 'erro');
 $cor = ['ok' => '#286456', 'erro' => '#B4443C', 'aviso' => '#B8831F'];
@@ -128,7 +136,7 @@ $ico = ['ok' => '✓', 'erro' => '✕', 'aviso' => '!'];
     <?php if ($temErro): ?>
       corrija o item em vermelho, salve o config.php pelo Gerenciador de Arquivos e recarregue esta página.
     <?php else: ?>
-      abra a <a href="login.php">tela de acesso</a>. Depois, apague <code>gerar-hash.php</code> e, se quiser, este <code>teste-conexao.php</code>.
+      abra a <a href="login.php">tela de acesso</a> com o usuário <code>admin</code> e a senha temporária <code>admin1234</code>; a página vai pedir uma senha nova. Depois, apague <code>gerar-hash.php</code> e, se quiser, este <code>teste-conexao.php</code>.
     <?php endif; ?>
   </div>
 </main>

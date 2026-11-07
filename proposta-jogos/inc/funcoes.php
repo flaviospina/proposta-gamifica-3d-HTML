@@ -63,12 +63,6 @@ function config_pendencias(): array
             $p[] = "O $rot ($c) ainda não foi preenchido no config.php.";
         }
     }
-    $h = defined('ACESSO_SENHA_HASH') ? (string) ACESSO_SENHA_HASH : '';
-    if ($h === '' || str_starts_with($h, 'PREENCHER')) {
-        $p[] = 'A senha de acesso (ACESSO_SENHA_HASH) ainda não foi definida no config.php. Use o gerar-hash.php.';
-    } elseif (!preg_match('/^\$2[aby]\$\d{2}\$.{53}$/', $h)) {
-        $p[] = 'O valor de ACESSO_SENHA_HASH não parece um hash bcrypt válido (deve começar com $2y$ e ter 60 caracteres).';
-    }
     return $p;
 }
 

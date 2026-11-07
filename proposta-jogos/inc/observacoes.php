@@ -24,10 +24,10 @@ function jogo_por_slug(string $slug): ?array
  * Observações ativas (não excluídas) de um jogo, mais recentes primeiro.
  * @return array<int, array> linhas prontas para exibição (ver observacao_formatar)
  */
-function observacoes_do_jogo(int $jogoId, string $usuario): array
+function observacoes_do_jogo(int $jogoId, array $usuario): array
 {
     $st = db()->prepare(
-        'SELECT id, jogo_id, autor, parecer, texto, criado_em, atualizado_em
+        'SELECT id, jogo_id, usuario_id, autor, parecer, texto, criado_em, atualizado_em
            FROM pj_observacoes
           WHERE jogo_id = ? AND excluido_em IS NULL
           ORDER BY criado_em DESC, id DESC'
@@ -41,10 +41,10 @@ function observacoes_do_jogo(int $jogoId, string $usuario): array
  * para montar a página com uma única consulta).
  * @return array<string, array<int, array>>
  */
-function observacoes_por_jogo(string $usuario): array
+function observacoes_por_jogo(array $usuario): array
 {
     $st = db()->query(
-        'SELECT o.id, o.jogo_id, j.slug, o.autor, o.parecer, o.texto, o.criado_em, o.atualizado_em
+        'SELECT o.id, o.jogo_id, o.usuario_id, j.slug, o.autor, o.parecer, o.texto, o.criado_em, o.atualizado_em
            FROM pj_observacoes o
            JOIN pj_jogos j ON j.id = o.jogo_id
           WHERE o.excluido_em IS NULL
@@ -61,7 +61,7 @@ function observacoes_por_jogo(string $usuario): array
 function observacao_por_id(int $id): ?array
 {
     $st = db()->prepare(
-        'SELECT o.id, o.jogo_id, j.slug, o.autor, o.parecer, o.texto, o.criado_em, o.atualizado_em
+        'SELECT o.id, o.jogo_id, o.usuario_id, j.slug, o.autor, o.parecer, o.texto, o.criado_em, o.atualizado_em
            FROM pj_observacoes o JOIN pj_jogos j ON j.id = o.jogo_id
           WHERE o.id = ? AND o.excluido_em IS NULL LIMIT 1'
     );
@@ -71,10 +71,10 @@ function observacao_por_id(int $id): ?array
 }
 
 /** Insere e devolve o id. */
-function observacao_inserir(int $jogoId, string $autor, ?string $parecer, string $texto): int
+function observacao_inserir(int $jogoId, array $usuario, ?string $parecer, string $texto): int
 {
-    $st = db()->prepare('INSERT INTO pj_observacoes (jogo_id, autor, parecer, texto) VALUES (?, ?, ?, ?)');
-    $st->execute([$jogoId, $autor, $parecer ?: null, $texto]);
+    $st = db()->prepare('INSERT INTO pj_observacoes (jogo_id, usuario_id, autor, parecer, texto) VALUES (?, ?, ?, ?, ?)');
+    $st->execute([$jogoId, (int) $usuario['id'], (string) $usuario['nome'], $parecer ?: null, $texto]);
     return (int) db()->lastInsertId();
 }
 
@@ -92,14 +92,20 @@ function observacao_excluir(int $id): void
     $st->execute([$id]);
 }
 
-/** Verdadeiro se a observação pertence ao usuário (comparação sem distinguir maiúsculas). */
-function observacao_e_do_usuario(array $obs, string $usuario): bool
+/**
+ * Verdadeiro se a observação pertence ao usuário: pela conta (usuario_id) ou,
+ * em observações antigas sem conta, pelo nome do autor.
+ */
+function observacao_e_do_usuario(array $obs, array $usuario): bool
 {
-    return mb_strtolower(trim((string) $obs['autor'])) === mb_strtolower(trim($usuario));
+    if (!empty($obs['usuario_id'])) {
+        return (int) $obs['usuario_id'] === (int) $usuario['id'];
+    }
+    return mb_strtolower(trim((string) $obs['autor'])) === mb_strtolower(trim((string) $usuario['nome']));
 }
 
 /** Campos prontos para o HTML e para o JSON. */
-function observacao_formatar(array $o, string $usuario): array
+function observacao_formatar(array $o, array $usuario): array
 {
     return [
         'id'             => (int) $o['id'],

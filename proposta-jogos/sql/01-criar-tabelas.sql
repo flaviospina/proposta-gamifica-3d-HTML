@@ -36,7 +36,41 @@ CREATE TABLE IF NOT EXISTS pj_jogos (
   COMMENT='Jogos (e itens especiais) da proposta Gamifica 3D';
 
 -- ---------------------------------------------------------------------
+--  pj_usuarios — contas de acesso à página.
+--    perfil        → admin (cria e gerencia contas) | socio (lê e escreve observações)
+--    trocar_senha  → 1 obriga a definir uma senha nova no próximo acesso
+--                    (todo usuário novo e toda senha redefinida pelo admin nascem assim)
+--    ativo         → 0 bloqueia o acesso sem apagar o histórico
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS pj_usuarios (
+  id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  login            VARCHAR(30)  NOT NULL COMMENT 'nome de usuário para entrar (minúsculas, sem espaços)',
+  nome             VARCHAR(60)  NOT NULL COMMENT 'nome exibido nas observações',
+  senha_hash       VARCHAR(255) NOT NULL COMMENT 'bcrypt (password_hash)',
+  perfil           ENUM('admin','socio') NOT NULL DEFAULT 'socio',
+  trocar_senha     TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1 = precisa trocar a senha no próximo acesso',
+  ativo            TINYINT(1) NOT NULL DEFAULT 1,
+  criado_por       INT UNSIGNED NULL DEFAULT NULL,
+  criado_em        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ultimo_acesso_em DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_pj_usuarios_login (login)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Contas de acesso à proposta';
+
+-- Conta inicial do administrador.
+--   usuário: admin     senha temporária: admin1234
+--   No primeiro acesso a página OBRIGA a trocar essa senha.
+--   (se precisar redefinir depois pelo phpMyAdmin, gere um hash novo com gerar-hash.php
+--    e faça: UPDATE pj_usuarios SET senha_hash='<hash>', trocar_senha=1 WHERE login='admin';)
+INSERT INTO pj_usuarios (login, nome, senha_hash, perfil, trocar_senha, ativo)
+SELECT 'admin', 'Administrador', '$2y$10$HMRQizQaHb8QUNVgrTKpp.cYd0qg.4V0dAtiZQI4Dqu3dxGuFfTxC', 'admin', 1, 1
+ WHERE NOT EXISTS (SELECT 1 FROM pj_usuarios WHERE login = 'admin');
+
+-- ---------------------------------------------------------------------
 --  pj_observacoes — cada observação escrita pelos sócios.
+--    usuario_id  → conta que escreveu (define quem pode editar/excluir)
+--    autor       → nome do usuário no momento da gravação (exibição)
 --    parecer     → aprovado | ajustes | rever | descartar | NULL (só comentário)
 --    excluido_em → exclusão lógica: quando preenchido, a observação some da
 --                  página, mas continua no banco para auditoria.
@@ -44,7 +78,8 @@ CREATE TABLE IF NOT EXISTS pj_jogos (
 CREATE TABLE IF NOT EXISTS pj_observacoes (
   id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
   jogo_id        INT UNSIGNED NOT NULL,
-  autor          VARCHAR(60)  NOT NULL COMMENT 'nome informado na tela de acesso',
+  usuario_id     INT UNSIGNED NULL DEFAULT NULL,
+  autor          VARCHAR(60)  NOT NULL COMMENT 'nome do usuário quando escreveu',
   parecer        ENUM('aprovado','ajustes','rever','descartar') NULL DEFAULT NULL,
   texto          TEXT NOT NULL,
   criado_em      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,8 +88,11 @@ CREATE TABLE IF NOT EXISTS pj_observacoes (
   PRIMARY KEY (id),
   KEY ix_pj_obs_jogo (jogo_id, excluido_em, criado_em),
   KEY ix_pj_obs_autor (autor),
+  KEY ix_pj_obs_usuario (usuario_id),
   CONSTRAINT fk_pj_obs_jogo FOREIGN KEY (jogo_id) REFERENCES pj_jogos (id)
-    ON UPDATE CASCADE ON DELETE RESTRICT
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_pj_obs_usuario FOREIGN KEY (usuario_id) REFERENCES pj_usuarios (id)
+    ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Observações dos sócios sobre cada jogo da proposta';
 
@@ -76,5 +114,5 @@ INSERT INTO pj_jogos (slug, nome, ordem) VALUES
   ('geral',              'Observações gerais',             8)
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), ordem = VALUES(ordem);
 
--- Fim do script. Confira: a aba "Estrutura" do banco deve listar pj_jogos e pj_observacoes,
--- e pj_jogos deve ter 9 linhas.
+-- Fim do script. Confira: a aba "Estrutura" do banco deve listar pj_usuarios, pj_jogos e
+-- pj_observacoes; pj_jogos deve ter 9 linhas e pj_usuarios 1 linha (admin).

@@ -15,9 +15,11 @@ Sem etapa de build: basta copiar a pasta para o servidor pelo cPanel.
 proposta-jogos/
   index.php              página da proposta (exige login)
   login.php / sair.php   tela de acesso e saída
-  config.php             credenciais do banco e hash da senha — PREENCHER
+  trocar-senha.php       troca de senha (obrigatória no primeiro acesso)
+  usuarios.php           administração de contas (só admin)
+  config.php             credenciais do banco — PREENCHER
   teste-conexao.php      diagnóstico em português (pode apagar depois)
-  gerar-hash.php         gera o hash da senha — USAR UMA VEZ E APAGAR
+  gerar-hash.php         só para emergência (redefinir senha pelo phpMyAdmin) — apagar
   exportar-csv.php       baixa todas as observações em CSV
   api/                   endpoints JSON (salvar, editar, excluir, listar, resumo)
   inc/                   conexão, sessão, CSRF, funções e trechos de HTML (bloqueada no navegador)
@@ -52,7 +54,7 @@ Você precisa ter anotado: **nome do banco**, **usuário** e **senha**.
 3. Clique na aba **SQL**.
 4. Abra o arquivo `sql/01-criar-tabelas.sql` no seu computador (Bloco de notas serve), copie **todo** o conteúdo e cole na caixa.
 5. Clique em **Executar**.
-6. Confira: na aba **Estrutura** devem aparecer as tabelas `pj_jogos` (9 linhas) e `pj_observacoes` (vazia).
+6. Confira: na aba **Estrutura** devem aparecer as tabelas `pj_usuarios` (1 linha: admin), `pj_jogos` (9 linhas) e `pj_observacoes` (vazia).
 
 Se precisar rodar de novo, pode: o script não duplica nada.
 
@@ -72,44 +74,43 @@ Se precisar rodar de novo, pode: o script não duplica nada.
    - `DB_USER` → usuário completo (ex.: `itthri12_pjuser`)
    - `DB_PASS` → a senha do usuário
    - `DB_HOST` fica `localhost` (padrão da HostGator)
-3. Deixe `ACESSO_SENHA_HASH` para a próxima etapa.
-4. Clique em **Salvar alterações**.
+3. Clique em **Salvar alterações**. Não há senha de acesso neste arquivo: as contas ficam no banco.
 
-### Etapa 5 — Gerar o hash da senha de acesso
-
-1. No navegador, abra `https://itthrive.com.br/proposta-jogos/gerar-hash.php`.
-2. Digite a senha que os sócios usarão para abrir a proposta (duas vezes) e clique em **Gerar hash**.
-3. Copie a linha gerada (começa com `$2y$10$`).
-4. Volte ao `config.php` no Gerenciador de Arquivos e cole o hash em
-   `define('ACESSO_SENHA_HASH', '...');`, substituindo o texto `PREENCHER...` entre as aspas simples.
-5. Salve.
-
-### Etapa 6 — Testar a conexão
+### Etapa 5 — Testar a conexão
 
 1. Abra `https://itthrive.com.br/proposta-jogos/teste-conexao.php`.
-2. Todos os itens devem ficar **verdes**. Se algum ficar vermelho, a própria tela explica o que corrigir
-   (usuário, senha, nome do banco, host, tabelas ou extensão do PHP).
+2. Todos os itens devem ficar **verdes** (o aviso amarelo sobre a senha temporária do admin é esperado neste momento).
+   Se algum ficar vermelho, a própria tela explica o que corrigir (usuário, senha, nome do banco, host, tabelas ou extensão do PHP).
 3. Corrija no `config.php`, salve e recarregue a página de teste até ficar tudo certo.
 
 Se aparecer erro de versão do PHP, no cPanel abra **Select PHP Version** e escolha **8.2**
 (com as extensões `pdo_mysql` e `mbstring` marcadas).
 
-### Etapa 7 — Apagar os arquivos de uso único
+### Etapa 6 — Primeiro acesso do administrador
+
+1. Abra `https://itthrive.com.br/proposta-jogos/` e entre com:
+   - usuário: `admin`
+   - senha temporária: `admin1234`
+2. A página **obriga** a definir uma senha nova (mínimo de 8 caracteres). Guarde-a: ela é a sua senha de administrador.
+3. Se quiser, em **Usuários** → linha do admin, troque o nome "Administrador" pelo seu nome (é o nome que aparece nas observações).
+
+### Etapa 7 — Criar a conta do sócio
+
+1. Com o admin logado, clique em **Usuários** na barra superior.
+2. Em **Nova conta**, informe o nome (ex.: "Marcos Silva"), o usuário (ex.: `marcos`) e o perfil **Sócio**.
+   Deixe a senha temporária em branco para a página gerar uma.
+3. Clique em **Criar conta**. A senha temporária aparece **uma única vez**; copie-a.
+4. Envie ao sócio o endereço, o usuário e a senha temporária. No primeiro acesso ele define a senha dele.
+
+Perfis: **Administrador** gerencia contas (criar, redefinir senha, desativar) além de tudo o que o sócio faz;
+**Sócio** lê a proposta e escreve observações.
+
+### Etapa 8 — Apagar os arquivos de uso único
 
 No Gerenciador de Arquivos, dentro de `proposta-jogos`, **apague**:
 
-- `gerar-hash.php` (obrigatório);
-- `teste-conexao.php` (recomendado depois que tudo estiver verde; ele não mostra senhas, mas não precisa ficar publicado).
-
-### Etapa 8 — Enviar o acesso ao sócio
-
-Mande ao sócio, por um canal seguro (de preferência por voz ou em mensagens separadas):
-
-- o endereço: `https://itthrive.com.br/proposta-jogos/`
-- a senha de acesso definida na Etapa 5.
-
-Peça que ele entre com o **mesmo nome sempre** (ex.: "Marcos"): é o nome que identifica as observações
-dele e que permite editar ou excluir só as próprias.
+- `gerar-hash.php` (só serve para redefinir uma senha direto no phpMyAdmin; não deve ficar publicado);
+- `teste-conexao.php` (recomendado depois que tudo estiver verde).
 
 ---
 
@@ -126,13 +127,15 @@ dele e que permite editar ou excluir só as próprias.
 - **Imagens:** clicar numa imagem modelo abre em tela cheia (Esc fecha).
 - **Impressão:** Ctrl+P (ou o botão no Resumo) imprime a proposta completa, com as observações e a tabela-resumo no fim.
   Marque "Gráficos de fundo" nas opções de impressão para manter as cores.
+- **Minha senha:** clique no seu nome na barra superior para trocar a senha (pede a senha atual).
+- **Usuários (admin):** criar contas, redefinir senhas (gera uma temporária e obriga a troca no próximo acesso),
+  ativar/desativar contas e alterar nome ou perfil. Não dá para desativar a própria conta nem o único administrador.
 - **Sair:** link **Sair** na barra superior.
 
-### Observação sobre a identificação
+### Como funciona a identificação
 
-A senha é compartilhada e a identificação é pelo **nome digitado no login**. Quem digitar o nome do outro
-sócio conseguiria editar as observações dele. Para dois sócios de confiança isso é suficiente; se a página
-for aberta a mais pessoas, troque a senha compartilhada por usuários individuais.
+Cada pessoa tem a própria conta. As observações ficam ligadas à conta que as escreveu, e só ela pode
+editá-las ou excluí-las (nem o administrador). O nome exibido é o nome cadastrado na conta.
 
 ---
 
@@ -169,7 +172,7 @@ for aberta a mais pessoas, troque a senha compartilhada por usuários individuai
 
 - PDO com prepared statements em todas as consultas; escape de saída em tudo que vem do banco.
 - Token CSRF em todos os formulários e chamadas da API; sessão com cookie HttpOnly e SameSite.
-- Senha de acesso guardada só como hash bcrypt no `config.php`; freio de tentativas no login.
+- Senhas guardadas só como hash bcrypt em `pj_usuarios`; freio de tentativas no login; troca obrigatória de senha temporária.
 - `.htaccess` bloqueia `config.php`, `README.md`, `*.sql` e as pastas `inc/` e `sql/` no navegador.
 - Endpoints respondem 401 sem sessão e 403 ao tentar editar/excluir observação de outro autor.
 
@@ -177,5 +180,9 @@ for aberta a mais pessoas, troque a senha compartilhada por usuários individuai
 
 - **"Banco de dados indisponível"** ao abrir a página: abra `teste-conexao.php` (reenvie-o se já tiver apagado) e siga a explicação.
 - **"A página ainda não está configurada"** no login: ainda há `PREENCHER` no `config.php`.
+- **"Esta conta está desativada"**: o admin precisa ativá-la de novo em **Usuários**.
 - **Tela em branco:** no `config.php`, troque `APP_ENV` para `'dev'` para ver o erro; volte para `'producao'` depois.
-- **Esqueci a senha de acesso:** reenvie `gerar-hash.php`, gere um hash novo, cole no `config.php` e apague o arquivo.
+- **Um sócio esqueceu a senha:** o admin abre **Usuários** → **Redefinir senha** e envia a temporária.
+- **O admin esqueceu a própria senha:** reenvie `gerar-hash.php`, gere um hash novo e rode no phpMyAdmin
+  `UPDATE pj_usuarios SET senha_hash='<hash>', trocar_senha=1 WHERE login='admin';`. Depois apague o arquivo.
+- **Já tinha instalado a versão anterior (sem contas):** rode `sql/02-migracao-usuarios.sql` uma vez no phpMyAdmin.
