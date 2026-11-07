@@ -1,7 +1,7 @@
 /* =====================================================================
    Gamifica 3D — Proposta da nova linha de jogos
    js/app.js — comportamentos gerais da página: menu no celular, destaque
-   da seção atual na navegação e avisos de recursos ainda não disponíveis.
+   da seção atual na navegação e lightbox das imagens modelo.
    ===================================================================== */
 (function () {
   'use strict';
@@ -36,6 +36,40 @@
     });
   }
 
+  /* ---------- Lightbox das imagens modelo ---------- */
+  const lb = document.getElementById('lightbox');
+  if (lb) {
+    const img = lb.querySelector('.lightbox__img');
+    const legenda = lb.querySelector('.lightbox__legenda');
+    let ultimoFoco = null;
+    function abrirLightbox(el) {
+      img.src = el.currentSrc || el.src;
+      img.alt = el.alt || '';
+      const fig = el.closest('figure');
+      const cap = fig && fig.querySelector('figcaption');
+      legenda.textContent = (el.alt ? el.alt + ' · ' : '') + (cap ? cap.textContent : '');
+      ultimoFoco = document.activeElement;
+      lb.hidden = false;
+      document.body.classList.add('sem-rolagem');
+      lb.querySelector('.lightbox__fechar').focus();
+    }
+    function fecharLightbox() {
+      lb.hidden = true;
+      img.src = '';
+      document.body.classList.remove('sem-rolagem');
+      if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
+    }
+    document.querySelectorAll('img[data-lightbox]').forEach((el) => {
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', 'Ampliar imagem');
+      el.addEventListener('click', () => abrirLightbox(el));
+      el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrirLightbox(el); } });
+    });
+    lb.addEventListener('click', (ev) => { if (ev.target === lb || ev.target.closest('.lightbox__fechar')) fecharLightbox(); });
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !lb.hidden) fecharLightbox(); });
+  }
+
   /* ---------- Seção atual destacada no menu ---------- */
   const linksNav = Array.from(document.querySelectorAll('.nav a[href^="#"]'));
   const secoes = linksNav
@@ -53,10 +87,4 @@
     );
     secoes.forEach((s) => obs.observe(s));
   }
-
-  /* ---------- Recursos das próximas fases ---------- */
-  // Botão "Resumo" (painel resumo — Fase 4)
-  document.querySelectorAll('[data-fase="4"]').forEach((btn) => {
-    btn.addEventListener('click', () => avisar('O painel resumo chega na Fase 4 (acabamento).'));
-  });
 })();

@@ -68,3 +68,29 @@ function bloco_observacoes_html(array $jogo, array $observacoes, string $titulo 
     $h .= '</section>';
     return $h;
 }
+
+/** Uma linha da tabela do painel resumo. */
+function resumo_linha_html(array $r): string
+{
+    $selo = $r['ultimo_parecer']
+        ? '<span class="selo selo--' . e($r['ultimo_parecer']) . '">' . e($r['ultimo_parecer_rotulo']) . '</span>'
+        : '<span class="selo selo--vazio">Sem parecer</span>';
+    return '<tr data-slug="' . e($r['slug']) . '">'
+        . '<th scope="row">' . e($r['nome']) . '</th>'
+        . '<td>' . $selo . '</td>'
+        . '<td class="num">' . (int) $r['total'] . '</td>'
+        . '<td>' . ($r['ultima_em'] ? e($r['ultima_em']) : '<span class="texto-mudo">—</span>') . '</td>'
+        . '<td class="acao"><a href="#' . e($r['slug']) . '" class="resumo__ir">Ir à seção</a></td>'
+        . '</tr>';
+}
+
+/** Tabela do painel resumo (usada no diálogo e na versão de impressão). */
+function resumo_tabela_html(array $resumo, string $id = ''): string
+{
+    $total = array_sum(array_column($resumo, 'total'));
+    $h = '<table class="resumo__tabela"' . ($id ? ' id="' . e($id) . '"' : '') . '>';
+    $h .= '<thead><tr><th scope="col">Jogo</th><th scope="col">Último parecer</th><th scope="col" class="num">Observações</th><th scope="col">Última</th><th scope="col"></th></tr></thead>';
+    $h .= '<tbody data-resumo-linhas>' . implode('', array_map('resumo_linha_html', $resumo)) . '</tbody>';
+    $h .= '<tfoot><tr><td colspan="2">Total</td><td class="num" data-resumo-total>' . (int) $total . '</td><td colspan="2"></td></tr></tfoot>';
+    return $h . '</table>';
+}

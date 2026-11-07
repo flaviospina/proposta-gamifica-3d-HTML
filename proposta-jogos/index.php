@@ -17,6 +17,7 @@ try {
         $jogos[$j['slug']] = $j;
     }
     $obs = observacoes_por_jogo($usuario);
+    $resumo = resumo_jogos();
 } catch (PDOException $ex) {
     http_response_code(500);
     $explicacao = explicar_erro_pdo($ex);
@@ -61,7 +62,7 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
       <a href="#roteiro">Roteiro</a>
       <a href="#geral">Observações gerais</a>
     </nav>
-    <button class="btn btn--ouro" type="button" data-fase="4" title="Painel resumo — chega na Fase 4">Resumo</button>
+    <button class="btn btn--ouro" type="button" id="abrir-resumo" aria-haspopup="dialog" aria-controls="resumo">Resumo</button>
     <div class="topo__usuario"><span class="topo__nome" title="Conectado como"><?= e($usuario) ?></span><a class="topo__sair" href="sair.php">Sair</a></div>
     <button class="nav-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">☰</button>
   </div>
@@ -863,6 +864,40 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
   </div>
 </footer>
 
+<!-- ============================== PAINEL RESUMO ============================== -->
+<dialog class="resumo" id="resumo" aria-labelledby="resumo-titulo">
+  <div class="resumo__cab">
+    <div>
+      <span class="kicker">Painel resumo</span>
+      <h2 id="resumo-titulo">Pareceres por jogo</h2>
+    </div>
+    <button type="button" class="resumo__fechar" aria-label="Fechar">✕</button>
+  </div>
+  <div class="resumo__rolagem">
+    <?= resumo_tabela_html($resumo) ?>
+  </div>
+  <div class="resumo__acoes">
+    <a class="btn btn--primario" href="exportar-csv.php">Exportar observações (CSV)</a>
+    <button type="button" class="btn btn--contorno" id="imprimir">Imprimir / salvar em PDF</button>
+    <span class="texto-mudo resumo__nota">Atualiza sozinho a cada observação salva.</span>
+  </div>
+</dialog>
+
+<!-- Resumo só para impressão (o diálogo não é impresso) -->
+<section class="resumo-impressao" aria-hidden="true">
+  <h2>Resumo dos pareceres</h2>
+  <?= resumo_tabela_html($resumo, 'resumo-impressao-tabela') ?>
+</section>
+
+<!-- ============================== LIGHTBOX ============================== -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Imagem ampliada" hidden>
+  <button type="button" class="lightbox__fechar" aria-label="Fechar">✕</button>
+  <figure class="lightbox__figura">
+    <img src="" alt="" class="lightbox__img">
+    <figcaption class="lightbox__legenda"></figcaption>
+  </figure>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -875,5 +910,6 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
 </script>
 <script src="js/app.js"></script>
 <script src="js/observacoes.js"></script>
+<script src="js/resumo.js"></script>
 </body>
 </html>
