@@ -24,6 +24,9 @@ proposta-jogos/
   api/                   endpoints JSON (salvar, editar, excluir, listar, resumo)
   inc/                   conexão, sessão, CSRF, funções e trechos de HTML (bloqueada no navegador)
   css/  js/  img/        estilo, scripts e as 9 imagens modelo em SVG
+  img/compartilhar/      artes para WhatsApp e redes sociais (1200×630 e 1080×1080, JPG e PNG)
+  img/icones/            favicon e ícone para celular
+  inc/metatags.php       metatags de compartilhamento (Open Graph / Twitter) e ícones
   sql/01-criar-tabelas.sql
   .htaccess              bloqueia config, SQL, README e pastas internas
   README.md              este arquivo
@@ -165,6 +168,27 @@ editá-las ou excluí-las (nem o administrador). O nome exibido é o nome cadast
 
 5. Envie o `index.php` e o SVG pelo Gerenciador de Arquivos. Pronto: o jogo aparece com bloco de observações,
    selo, entrada no painel resumo e no CSV.
+
+---
+
+## Compartilhamento (WhatsApp, redes sociais) e metatags
+
+- As metatags ficam em **um único arquivo**, `inc/metatags.php`, já incluído no `<head>` de `index.php`,
+  `login.php`, `trocar-senha.php` e `usuarios.php`. Para uma página nova, coloque dentro do `<head>`:
+  `<?php require __DIR__ . '/inc/metatags.php'; ?>`
+- O endereço público usado nas tags está em `config.php` → `APP_URL` (sem barra no final). Se publicar em
+  outra pasta ou domínio, ajuste ali. Título e descrição vêm de `APP_NOME` e `APP_DESCRICAO`.
+- Como a página exige login, o robô do WhatsApp/Facebook/LinkedIn enxerga a tela de acesso; por isso as
+  metatags também estão no `login.php`, com o título e a descrição da proposta.
+- Artes prontas em `img/compartilhar/`:
+  - `og-1200x630.jpg` → prévia automática dos links (WhatsApp, Facebook, LinkedIn, Telegram, X);
+  - `quadrado-1080.jpg` → prévia 1:1 em apps que preferem quadrado;
+  - as versões `.png` das mesmas artes servem para **postar** em redes sociais ou enviar como imagem no WhatsApp.
+- Para testar a prévia: cole o link num chat do WhatsApp ou use `https://developers.facebook.com/tools/debug/`.
+  Se trocar a arte e a prévia antiga continuar aparecendo, é cache: mude o nome do arquivo no `inc/metatags.php`
+  ou peça "Scrape again" na ferramenta do Facebook.
+- As artes foram geradas a partir de `ferramentas/compartilhar/` (fora da pasta publicada); para refazer com
+  outro texto, edite os `.html` de lá e rode `node ferramentas/compartilhar/renderizar.js`.
 
 ---
 

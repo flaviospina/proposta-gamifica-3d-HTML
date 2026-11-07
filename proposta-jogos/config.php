@@ -35,6 +35,8 @@ define('SENHA_MINIMO', 8);                       // tamanho mínimo das senhas n
  * 3) AJUSTES GERAIS (normalmente não precisa mexer)
  * ------------------------------------------------------------------- */
 define('APP_NOME', 'Gamifica 3D — Nova linha de jogos');
+define('APP_URL', 'https://itthrive.com.br/proposta-jogos'); // endereço público, SEM barra no final (usado nas metatags de compartilhamento)
+define('APP_DESCRICAO', 'Proposta de sete jogos educativos em 3D para o Gamifica: personagem navegável, cenários próprios e conteúdo cadastrado pelo professor. Para discussão entre os sócios.');
 define('APP_DATA', '7 de novembro de 2026');     // data exibida na capa e no rodapé
 define('APP_ENV', 'producao');                   // 'producao' esconde erros do PHP; 'dev' mostra na tela
 define('SESSAO_NOME', 'pj_sessao');              // nome do cookie de sessão

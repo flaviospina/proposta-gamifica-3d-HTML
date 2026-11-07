@@ -1,0 +1,23 @@
+/* Estilo comum das artes de compartilhamento (renderizadas em PNG por renderizar.js) */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@500;600;700&display=swap');
+:root { --navy:#161F38; --navy2:#223055; --navy3:#0F1628; --papel:#FBF7EF; --verde:#286456; --ouro:#E0A537; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: var(--navy); }
+body { font-family: Inter, system-ui, sans-serif; color: var(--papel); overflow: hidden; }
+.arte { position: relative; overflow: hidden; background: radial-gradient(1100px 600px at 85% -10%, #2B3A66 0%, var(--navy) 55%, var(--navy3) 100%); }
+.marca { display: flex; width: fit-content; align-items: center; gap: 12px; font-family: Fraunces, Georgia, serif; font-weight: 600; }
+.marca__logo { border-radius: 12px; background: var(--ouro); color: var(--navy); display: grid; place-items: center; font-weight: 700; }
+.marca__3d { color: var(--ouro); }
+.kicker { display: inline-flex; align-items: center; gap: 12px; text-transform: uppercase; letter-spacing: .16em; font-weight: 700; color: var(--ouro); }
+.kicker::before { content: ""; width: 34px; height: 2px; background: var(--ouro); }
+h1 { font-family: Fraunces, Georgia, serif; font-weight: 700; line-height: 1.08; letter-spacing: -.01em; }
+h1 em { font-style: italic; color: var(--ouro); font-weight: 500; }
+.sub { color: rgba(251,247,239,.82); line-height: 1.4; }
+.sub strong { color: var(--ouro); font-weight: 600; }
+.rodape { color: rgba(251,247,239,.5); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+.galeria { position: absolute; }
+.galeria img { position: absolute; border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.5); border: 3px solid rgba(255,255,255,.14); background: var(--papel); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 6px 14px; font-weight: 600; }
+.chips span b { color: var(--ouro); font-family: Fraunces, Georgia, serif; margin-right: 6px; }
+.deco { position: absolute; pointer-events: none; opacity: .55; }

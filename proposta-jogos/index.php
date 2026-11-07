@@ -43,6 +43,7 @@ $selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []),
   <meta name="robots" content="noindex, nofollow">
   <meta name="csrf" content="<?= e($csrf) ?>">
   <title><?= e(APP_NOME) ?> · Proposta</title>
+  <?php require __DIR__ . '/inc/metatags.php'; ?>
   <meta name="description" content="Proposta de sete novos jogos educativos em 3D para o Gamifica, para discussão entre os sócios.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
