@@ -602,7 +602,7 @@ button { font-family: inherit; }
 .acesso--centro { grid-template-columns: 1fr !important; place-items: center; background: radial-gradient(1200px 600px at 80% -10%, #2B3A66 0%, var(--navy) 55%, var(--navy-3) 100%); }
 
 .acesso__painel {
-  position: relative; overflow-x: clip; color: var(--papel);
+  position: relative; overflow: clip; color: var(--papel);
   background: radial-gradient(1100px 600px at 85% -10%, #2B3A66 0%, var(--navy) 55%, var(--navy-3) 100%);
   display: flex; align-items: center;
 }
