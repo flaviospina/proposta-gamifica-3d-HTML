@@ -1,10 +1,47 @@
+<?php
+/**
+ * index.php — página da proposta Gamifica 3D (privada: exige login).
+ * Conteúdo estático dos jogos + blocos de observações gravados no MySQL.
+ */
+declare(strict_types=1);
+
+require_once __DIR__ . '/inc/bootstrap.php';
+
+$usuario = exigir_login();
+$csrf = csrf_token();
+
+// Carrega jogos e observações; se o banco falhar, mostra uma tela de erro amigável.
+try {
+    $jogos = [];
+    foreach (jogos_todos() as $j) {
+        $jogos[$j['slug']] = $j;
+    }
+    $obs = observacoes_por_jogo($usuario);
+} catch (PDOException $ex) {
+    http_response_code(500);
+    $explicacao = explicar_erro_pdo($ex);
+    require __DIR__ . '/inc/erro-banco.php';
+    exit;
+}
+
+/** Bloco de observações de um jogo (ou aviso se o slug não existir em pj_jogos). */
+$bloco = function (string $slug, string $titulo = 'Observações do sócio', string $placeholder = 'Escreva aqui a sua observação sobre este jogo…') use ($jogos, $obs): string {
+    if (!isset($jogos[$slug])) {
+        return '<section class="obs"><p class="obs__vazio">O item "' . e($slug) . '" não está cadastrado em pj_jogos. Rode o sql/01-criar-tabelas.sql.</p></section>';
+    }
+    return bloco_observacoes_html($jogos[$slug], $obs[$slug] ?? [], $titulo, $placeholder);
+};
+/** Selo com o último parecer. */
+$selo = fn(string $slug): string => selo_html(ultimo_parecer($obs[$slug] ?? []), $slug);
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Gamifica 3D — Nova linha de jogos · Proposta</title>
+  <meta name="csrf" content="<?= e($csrf) ?>">
+  <title><?= e(APP_NOME) ?> · Proposta</title>
   <meta name="description" content="Proposta de sete novos jogos educativos em 3D para o Gamifica, para discussão entre os sócios.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +62,7 @@
       <a href="#geral">Observações gerais</a>
     </nav>
     <button class="btn btn--ouro" type="button" data-fase="4" title="Painel resumo — chega na Fase 4">Resumo</button>
+    <div class="topo__usuario"><span class="topo__nome" title="Conectado como"><?= e($usuario) ?></span><a class="topo__sair" href="sair.php">Sair</a></div>
     <button class="nav-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">☰</button>
   </div>
 </header>
@@ -38,7 +76,7 @@
     <h1>Gamifica 3D — <em>Nova linha de jogos</em></h1>
     <p class="capa__sub">Sete jogos educativos com personagem navegável em cenários 3D, construídos a partir da experiência da cruzadinha <strong>Ilha das Palavras</strong>.</p>
     <div class="capa__meta">
-      <span>7 de novembro de 2026</span>
+      <span><?= e(APP_DATA) ?></span>
       <span>Proposta para discussão entre os sócios</span>
       <span>IT Thrive · CECAPE</span>
     </div>
@@ -99,6 +137,7 @@
             <span>Joystick no celular</span>
           </div>
         </div>
+        <?= $bloco('ilha-das-palavras', 'Observações sobre a referência', 'O que manter, mudar ou evitar nos próximos jogos…') ?>
       </article>
     </div>
   </div>
@@ -193,7 +232,7 @@
           <p class="jogo__tipo">Simulados on-line temáticos</p>
           <h3 class="jogo__nome">Trilha dos Portais <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('trilha-dos-portais') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -253,30 +292,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Trilha dos Portais">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-1" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-1" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-1" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-1" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('trilha-dos-portais') ?>
     </article>
 
     <!-- ---------------- JOGO 2 ---------------- -->
@@ -287,7 +303,7 @@
           <p class="jogo__tipo">Caça-palavras</p>
           <h3 class="jogo__nome">Campo das Letras <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('campo-das-letras') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -346,30 +362,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Campo das Letras">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-2" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-2" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-2" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-2" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('campo-das-letras') ?>
     </article>
 
     <!-- ---------------- JOGO 3 ---------------- -->
@@ -380,7 +373,7 @@
           <p class="jogo__tipo">Escape room</p>
           <h3 class="jogo__nome">Sala Secreta <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('sala-secreta') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -439,30 +432,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Sala Secreta">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-3" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-3" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-3" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-3" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('sala-secreta') ?>
     </article>
 
     <!-- ---------------- JOGO 4 ---------------- -->
@@ -473,7 +443,7 @@
           <p class="jogo__tipo">Complete a frase</p>
           <h3 class="jogo__nome">Ponte das Frases <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('ponte-das-frases') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -532,30 +502,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Ponte das Frases">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-4" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-4" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-4" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-4" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('ponte-das-frases') ?>
     </article>
 
     <!-- ---------------- JOGO 5 ---------------- -->
@@ -566,7 +513,7 @@
           <p class="jogo__tipo">Nada além de um minuto</p>
           <h3 class="jogo__nome">Arena 60 <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('arena-60') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -625,30 +572,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Arena 60">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-5" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-5" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-5" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-5" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('arena-60') ?>
     </article>
 
     <!-- ---------------- JOGO 6 (DESTAQUE) ---------------- -->
@@ -661,7 +585,7 @@
         </div>
         <div class="jogo__selos">
           <span class="destaque-faixa">★ Dois modos: Solo e Turma</span>
-          <span class="selo selo--vazio">Sem parecer ainda</span>
+          <?= $selo('roleta-do-alfabeto') ?>
         </div>
       </header>
       <div class="jogo__corpo">
@@ -777,30 +701,7 @@
           <p><b>Nota técnica.</b> Na hospedagem compartilhada, a sincronização do Modo Turma em tempo real será feita por <b>consulta periódica ao servidor</b> (<em>polling</em> a cada 1–2 segundos), sem servidor de WebSocket. É suficiente para uma turma e não exige infraestrutura adicional.</p>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Roleta do Alfabeto">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-6" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-6" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-6" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-6" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('roleta-do-alfabeto') ?>
     </article>
 
     <!-- ---------------- JOGO 7 ---------------- -->
@@ -811,7 +712,7 @@
           <p class="jogo__tipo">Liga pontos</p>
           <h3 class="jogo__nome">Constelação <span class="jogo__prov">nome provisório</span></h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('constelacao') ?></div>
       </header>
       <div class="jogo__corpo">
         <figure class="modelo">
@@ -870,30 +771,7 @@
           </div>
         </div>
       </div>
-
-      <section class="obs" aria-label="Observações do sócio sobre Constelação">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações do sócio</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-7" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-7" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-7" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-7" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Escreva aqui a sua observação sobre este jogo…" aria-label="Observação"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('constelacao') ?>
     </article>
 
   </div>
@@ -968,31 +846,9 @@
           <p class="jogo__tipo">Proposta completa</p>
           <h3 class="jogo__nome">Gamifica 3D — Nova linha de jogos</h3>
         </div>
-        <div class="jogo__selos"><span class="selo selo--vazio">Sem parecer ainda</span></div>
+        <div class="jogo__selos"><?= $selo('geral') ?></div>
       </header>
-      <section class="obs" aria-label="Observações gerais sobre a proposta">
-        <div class="obs__cab">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/></svg>Observações gerais</h4>
-          <span class="obs__fase">Gravação em banco de dados na Fase 3</span>
-        </div>
-        <form class="obs__form" data-fase="3">
-          <fieldset class="parecer">
-            <legend>Parecer sobre a proposta</legend>
-            <label data-v="aprovado"><input type="radio" name="parecer-geral" value="aprovado">Aprovado</label>
-            <label data-v="ajustes"><input type="radio" name="parecer-geral" value="ajustes">Aprovado com ajustes</label>
-            <label data-v="rever"><input type="radio" name="parecer-geral" value="rever">Rever</label>
-            <label data-v="descartar"><input type="radio" name="parecer-geral" value="descartar">Descartar</label>
-          </fieldset>
-          <textarea placeholder="Preço, prioridade, parcerias, o que for…" aria-label="Observação geral"></textarea>
-          <div class="obs__acoes">
-            <button class="btn btn--primario" type="submit">Salvar observação</button>
-            <span class="obs__status" aria-live="polite"></span>
-          </div>
-        </form>
-        <div class="obs__historico">
-          <p class="obs__vazio">Nenhuma observação ainda. O histórico aparecerá aqui, com autor, data/hora e parecer.</p>
-        </div>
-      </section>
+      <?= $bloco('geral', 'Observações gerais', 'Preço, prioridade, parcerias, o que for…') ?>
     </article>
   </div>
 </section>
@@ -1003,12 +859,21 @@
 <footer class="rodape">
   <div class="container rodape__inner">
     <div><strong>IT Thrive</strong> · <a href="https://itthrive.com.br" rel="noopener">itthrive.com.br</a></div>
-    <div>Gamifica 3D — Nova linha de jogos · Proposta para discussão entre os sócios · 7 de novembro de 2026</div>
+    <div>Gamifica 3D — Nova linha de jogos · Proposta para discussão entre os sócios · <?= e(APP_DATA) ?></div>
   </div>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script>
+  window.PJ = {
+    csrf: document.querySelector('meta[name="csrf"]').content,
+    usuario: <?= json_encode($usuario, JSON_UNESCAPED_UNICODE) ?>,
+    api: 'api/',
+    pareceres: <?= json_encode(PARECERES, JSON_UNESCAPED_UNICODE) ?>
+  };
+</script>
 <script src="js/app.js"></script>
+<script src="js/observacoes.js"></script>
 </body>
 </html>

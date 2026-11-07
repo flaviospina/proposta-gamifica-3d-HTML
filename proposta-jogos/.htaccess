@@ -1,0 +1,32 @@
+# =====================================================================
+#  Gamifica 3D — Proposta · .htaccess da raiz de /proposta-jogos/
+#  Bloqueia pelo navegador tudo que não é página: config, SQL, README, logs.
+#  Compatível com Apache 2.4 (HostGator) e com a sintaxe antiga (2.2).
+# =====================================================================
+
+# Sem listagem de pastas
+Options -Indexes
+
+# Página inicial
+DirectoryIndex index.php
+
+# Arquivos que nunca podem ser abertos pelo navegador
+<FilesMatch "^(config\.php|README\.md|\.htaccess|.*\.(sql|log|md|bak|ini|env))$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Cabeçalhos de segurança básicos
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+</IfModule>
+
+# Codificação padrão
+AddDefaultCharset UTF-8

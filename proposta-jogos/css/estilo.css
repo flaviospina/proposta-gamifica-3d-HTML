@@ -115,6 +115,7 @@ button { font-family: inherit; }
 .btn--fantasma { background: transparent; color: var(--papel); border-color: rgba(251,247,239,.35); }
 .btn--fantasma:hover { border-color: var(--papel); color: var(--papel); }
 .btn[disabled] { opacity: .55; cursor: not-allowed; }
+.btn[hidden] { display: none; }
 
 /* ---------- Barra superior ---------- */
 .topo {
@@ -567,6 +568,50 @@ button { font-family: inherit; }
 .rodape__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
 .rodape a { color: var(--ouro); text-decoration: none; }
 .rodape strong { color: var(--papel); }
+
+/* ---------- Usuário na barra superior ---------- */
+.topo__usuario { display: inline-flex; align-items: center; gap: 10px; font-size: .88rem; }
+.topo__nome { color: var(--papel); font-weight: 600; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topo__nome::before { content: "●"; color: var(--ouro); margin-right: 6px; font-size: .7em; vertical-align: 2px; }
+.topo__sair { color: rgba(251,247,239,.7); text-decoration: none; border: 1px solid rgba(251,247,239,.25); border-radius: 999px; padding: .35em .8em; }
+.topo__sair:hover { color: var(--papel); border-color: var(--papel); }
+@media (max-width: 860px) { .topo__nome { display: none; } }
+
+/* ---------- Observações: estados ---------- */
+.obs__contagem { font-size: .8rem; font-weight: 600; color: var(--texto-2); background: var(--branco); border: 1px solid var(--linha); padding: .35em .8em; border-radius: 999px; }
+.obs__form.editando { outline: 2px solid var(--ouro); outline-offset: 8px; border-radius: 6px; }
+.obs-item__data { color: var(--mudo); }
+.obs-item__editada { font-style: italic; color: var(--mudo); }
+.obs-item__editada::before { content: "· "; }
+.obs-item__acoes button:hover { text-decoration: underline; }
+.obs-item__acoes button[disabled] { opacity: .5; cursor: wait; }
+
+/* ---------- Alertas ---------- */
+.alerta { padding: 14px 16px; border-radius: var(--raio-p); font-size: .95rem; margin-bottom: 16px; }
+.alerta ul { margin: .5em 0 0; padding-left: 1.2em; }
+.alerta p { margin: .6em 0 0; }
+.alerta--erro { background: var(--vermelho-claro); color: var(--vermelho); border: 1px solid #EBC6C2; }
+.alerta--erro a { color: var(--vermelho); font-weight: 600; }
+.alerta--ok { background: var(--verde-claro); color: var(--verde); }
+
+/* ---------- Tela de acesso ---------- */
+.pagina-login { background: radial-gradient(1200px 600px at 80% -10%, #2B3A66 0%, var(--navy) 55%, var(--navy-3) 100%); min-height: 100svh; display: flex; flex-direction: column; }
+.login { flex: 1; display: grid; place-items: center; padding: 32px 16px; }
+.login__card { width: 100%; max-width: 460px; background: var(--papel); border-radius: calc(var(--raio) + 6px); padding: clamp(24px, 4vw, 40px); box-shadow: 0 30px 80px rgba(0,0,0,.35); }
+.login__marca { display: inline-flex; align-items: center; gap: 10px; font-family: var(--fonte-titulo); font-weight: 600; font-size: 1.15rem; color: var(--navy); margin-bottom: 18px; }
+.login__marca b { color: var(--ouro-escuro); font-weight: 600; }
+.login__card h1 { font-size: 1.7rem; margin-bottom: .3em; }
+.login__sub { color: var(--texto-2); font-size: .95rem; margin-bottom: 1.4em; }
+.login__form { display: grid; gap: 14px; }
+.campo { display: grid; gap: 6px; }
+.campo span { font-size: .85rem; font-weight: 600; color: var(--texto-2); }
+.campo input { font: inherit; padding: 12px 14px; border-radius: var(--raio-p); border: 1.5px solid var(--linha); background: var(--branco); color: var(--texto); }
+.campo input:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px rgba(40,100,86,.15); }
+.login__btn { justify-content: center; font-size: 1rem; padding: .8em 1.4em; margin-top: 6px; }
+.login__nota { font-size: .82rem; color: var(--mudo); margin-top: 18px; }
+.login__nota code { background: var(--papel-2); padding: 2px 6px; border-radius: 6px; }
+.login__rodape { text-align: center; color: rgba(251,247,239,.5); font-size: .85rem; padding-bottom: 20px; }
+.card-ref .obs { padding: 18px 24px 22px; }
 
 /* ---------- Toast ---------- */
 .toast {

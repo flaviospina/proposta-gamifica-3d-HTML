@@ -1,8 +1,7 @@
 /* =====================================================================
    Gamifica 3D — Proposta da nova linha de jogos
-   js/app.js — Fase 1 (estrutura e conteúdo)
-   Comportamentos da página estática: menu no celular, destaque da seção
-   atual na navegação e avisos para os recursos que chegam nas próximas fases.
+   js/app.js — comportamentos gerais da página: menu no celular, destaque
+   da seção atual na navegação e avisos de recursos ainda não disponíveis.
    ===================================================================== */
 (function () {
   'use strict';
@@ -59,18 +58,5 @@
   // Botão "Resumo" (painel resumo — Fase 4)
   document.querySelectorAll('[data-fase="4"]').forEach((btn) => {
     btn.addEventListener('click', () => avisar('O painel resumo chega na Fase 4 (acabamento).'));
-  });
-
-  // Formulários de observação (gravação em banco — Fase 3)
-  document.querySelectorAll('form.obs__form[data-fase="3"]').forEach((form) => {
-    form.addEventListener('submit', (ev) => {
-      ev.preventDefault();
-      const status = form.querySelector('.obs__status');
-      if (status) {
-        status.textContent = 'Nesta fase o formulário é só visual. A gravação no banco chega na Fase 3.';
-        status.classList.add('erro');
-        setTimeout(() => { status.textContent = ''; status.classList.remove('erro'); }, 4000);
-      }
-    });
   });
 })();
