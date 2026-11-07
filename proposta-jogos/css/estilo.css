@@ -261,12 +261,24 @@ button { font-family: inherit; }
 .modelo__placeholder span { font-weight: 600; font-size: 1rem; line-height: 1.4; }
 .modelo__placeholder small { display: block; font-weight: 500; color: #7A7873; font-size: .8rem; margin-top: .4em; }
 .modelo__placeholder .ico { width: 44px; height: 44px; margin: 0 auto 10px; color: #8C887F; }
+.modelo__img {
+  width: 100%; height: auto; aspect-ratio: 16 / 9; display: block;
+  border-radius: var(--raio-p); border: 1px solid var(--linha); background: var(--papel-2);
+  box-shadow: var(--sombra-leve); cursor: zoom-in;
+}
+.card-ref .modelo__img { border-radius: 0; border: 0; border-bottom: 1px solid var(--linha); box-shadow: none; }
 .modelo figcaption {
   font-size: .78rem; color: var(--mudo); margin-top: .6em; text-align: center;
   font-style: italic;
 }
 .card-ref .modelo__placeholder { border-radius: 0; border: 0; border-bottom: 1.5px dashed #ABA69B; }
-.card-ref .modelo figcaption { padding: 0 24px; text-align: left; }
+.card-ref .modelo__img {
+  width: 100%; height: auto; aspect-ratio: 16 / 9; display: block;
+  border-radius: var(--raio-p); border: 1px solid var(--linha); background: var(--papel-2);
+  box-shadow: var(--sombra-leve); cursor: zoom-in;
+}
+.card-ref .modelo__img { border-radius: 0; border: 0; border-bottom: 1px solid var(--linha); box-shadow: none; }
+.modelo figcaption { padding: 0 24px; text-align: left; }
 
 /* ---------- Princípios ---------- */
 .principios {
